@@ -102,15 +102,6 @@ def stream(instance, users, client_id, client_secret, access_token, plug_client,
     users = [normalize_username(user, instance) for user in users]
     listener = StreamListener(plug_client, instance, users, event_loop)
     
-
-    existing_statuses = client.timeline_hashtag(LISTEN_TO_HASHTAG, limit=1)
-
-    if options['debug']:
-        print(rf'existing_statuses: {existing_statuses}')
-
-    for status in existing_statuses:
-        listener.on_update(status)
-
     click.echo(f'==> Streaming from {instance}')
     client.stream_user(listener)
 
