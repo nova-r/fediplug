@@ -1,4 +1,4 @@
-Copyright (c) 2017 Matt Behrens.
+Copyright (c) 2017 Matt Behrens.  
 Copyright (c) 2023 Nova Ruff, Mæve Rey
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
