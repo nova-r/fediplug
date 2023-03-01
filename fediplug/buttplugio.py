@@ -36,20 +36,22 @@ async def scan_devices(plug_client):
     return plug_client
 
 
-async def trigger_actuators(plug_client, play_command):
+async def trigger_actuators(plug_client, actuator_command):
+    MAX_DURATION = 60  # maximum duration in seconds
+    MAX_POWER = 1  # has to be 0 <= n <= 1 or it will not work
+    duration = clamp(actuator_command[0], 0, MAX_DURATION)
+    power = clamp(actuator_command[1], 0, MAX_POWER)
     # If we have any device we can access it by its ID:
     device = plug_client.devices[0]
-    # The most common case among devices is that they have some actuators
-    # which accept a scalar value (0.0-1.0) as their command.
-    play_command = (1, 1)
     if len(device.actuators) != 0:
         print(len(device.actuators), "actuators found")
         # cycle through all actuators in device
         print(device.actuators)
+        print(f"{duration=} {power=}")
         for actuator in device.actuators:
-            await actuator.command(play_command[0])
+            await actuator.command(power)
             print("generic actuator")
-        await asyncio.sleep(play_command[1])
+        await asyncio.sleep(duration)
         #stops all actuators
         for actuator in device.actuators:
             await actuator.command(0)
@@ -73,6 +75,9 @@ async def disconnect_plug_client(plug_client):
     # Disconnect the plug_client.
     await plug_client.disconnect()
 
+def clamp(n, smallest, largest):
+    '''returns the closest value to n still in range (clamp)'''
+    return max(smallest, min(n, largest))
 
 # First things first. We set logging to the console and at INFO level.
 logging.basicConfig(stream=sys.stdout, level=logging.INFO)

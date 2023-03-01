@@ -9,6 +9,8 @@ import lxml.html as lh
 from lxml.html.clean import clean_html
 import mastodon
 import asyncio
+import re
+from itertools import cycle
 
 from fediplug.cli import options
 import fediplug.keyring as keyring
@@ -31,6 +33,23 @@ class StreamListener(mastodon.StreamListener):
         self.instance = instance
         self.users = users
         self.event_loop = event_loop
+        self.regular_expression = re.compile(r"((?:\b(?:\d+s)(?:\s|\b))+(?:\d+%)?)+")
+        # extracts commands from captured toots for usage in buttplug.io actuator
+        # if no power % is given, a default will be set later
+        # examples:
+        # input: "#fediplug @nova_ have fun :) 10s 50% 4s 5s"
+        # output: ["10s 50%", "4s 5s"]
+        #
+        # input: "60% 10s @maeve 5s 7s 10% foo bar 8s baz 20% 30s 1337."
+        # output: ["10s 5s 7s 10%", "8s 20%", "30s"]
+        #
+        # input: "10s6 80%"
+        # output: []
+        #
+        # watch out for this quirk: 
+        # input "10s 70%8"
+        # output: ["10s 70%"]
+        # TODO: fix this, it should match the 70% because there isnt a word boundary after it
 
         if options['debug']:
             print(rf'listener initialized with users={self.users}')
@@ -40,6 +59,7 @@ class StreamListener(mastodon.StreamListener):
             print(rf'incoming status: acct={status.account.acct}')
 
         if self.users and normalize_username(status.account.acct, self.instance) not in self.users:
+            # TODO: only do this if no toot from self.users with #fediplug has been captured yet, else check in_reply_to_ID
             if options['debug']:
                 print('skipping status due to username filtering')
             return
@@ -49,13 +69,14 @@ class StreamListener(mastodon.StreamListener):
             print(rf'expecting: {LISTEN_TO_HASHTAG}, extracted tags: {tags}')
 
         if LISTEN_TO_HASHTAG in tags:
+            # TODO: if Hashtag matches and toot is from mentioned account, then get toot ID
+
             ''' Here we extract the instructions for the butplug'''
-            # TODO: still need to write extraction code
-            buttplug_instructions = extract_buttplug_instructions(status)
-            click.echo('queueing instructions')
-            self.event_loop.run_until_complete(trigger_actuators(self.plug_client, buttplug_instructions))
-
-
+            buttplug_instructions = extract_buttplug_instructions(status, self.regular_expression)
+            if buttplug_instructions:  # check if buttplug_instructions is not empty
+                for buttplug_instruction in buttplug_instructions:
+                    click.echo(f'queueing instructions {buttplug_instruction}')
+                    self.event_loop.run_until_complete(trigger_actuators(self.plug_client, buttplug_instruction))    
 
 '''
             if options['debug']:
@@ -121,11 +142,22 @@ def normalize_username(user, instance):
     else:
         return user
 
-def extract_buttplug_instructions(toot):
+def extract_buttplug_instructions(status, regular_expression):
     '''Extract buttplug instruction informations from a toot.'''
-    doc_list = []
-    doc = lh.fromstring(toot['content'])
-    doc = clean_html(doc)
-    doc_list.append(doc.text_content())
-    print(rf'extracted buttplug_instruction: {doc_list}')
-    return doc_list
+    toot = lh.fromstring(status['content'])
+    toot = clean_html(toot)
+    toot = toot.text_content()
+    instructions = regular_expression.findall(toot)
+    actuator_commands = []  # List of tuples with (duration in seconds, power in range 0..1)
+    for instruction in instructions:
+        commands = instruction.strip().split(" ")
+        print(commands)
+        if commands[-1][-1] != "%":
+            commands.append("100%")
+        commands = [int(command[:-1]) for command in commands]
+        power = commands.pop()/100  # convert power from % to range 0..1
+        commands = list(zip(commands, cycle([power])))
+        print(commands)
+        actuator_commands.extend(commands)
+    print(rf'extracted buttplug_instruction: {actuator_commands}')
+    return actuator_commands
