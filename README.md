@@ -4,9 +4,9 @@ A Mastodon client that automatically vibrates your buttplug.io devices as people
 
 ## getting started
 
-Use `pipenv install` from [Pipenv](https://docs.pipenv.org/) to install the Python dependencies and set up the fediplug script inside the virtual environment.
+Use `poetry install` from [Poetry](https://python-poetry.org/docs/#installation) to install the Python dependencies and set up the fediplug script inside the virtual environment.
 
-You can use the fediplug script with either `pipenv run fediplug` or by entering the Pipenv shell with `pipenv shell` and just running `fediplug`.
+You can use the fediplug script with either `poetry run fediplug` or by entering the Pipenv shell with `poetry shell` and just running `fediplug`.
 
 ## registering and logging in
 
