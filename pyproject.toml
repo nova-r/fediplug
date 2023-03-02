@@ -1,0 +1,30 @@
+[tool.poetry]
+name = "fediplug"
+authors = ["Nova Ruff", "Mæve Rey"]
+version = "0.1.0"
+description = "A Mastodon client that automatically vibrates your buttplug.io devices as people on your timeline toot instructions."
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.9"
+anyio = "*"
+appdirs = "*"
+asyncclick = "*"
+asyncio = "*"
+buttplug-py = "*"
+click = "*"
+cssselect = "*"
+keyring = "*"
+lxml = "*"
+"mastodon.py" = "*"
+python-dotenv = "*"
+
+[tool.poetry.plugins] # Optional super table
+
+[tool.poetry.plugins."console_scripts"]
+fediplug = "fediplug:cli"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
