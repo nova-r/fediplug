@@ -6,11 +6,7 @@ import os
 path = os.path
 import sys
 
-import atexit
-import appdirs
 import click as click
-import atexit
-from mastodon import Mastodon
 import asyncio
 
 from fediplug.dirs import DIRS

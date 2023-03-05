@@ -2,19 +2,15 @@
 
 LISTEN_TO_HASHTAG = 'fediplug'
 
-from os import umask
-
 import click
 import lxml.html as lh
 from lxml.html.clean import clean_html
 import mastodon
-import asyncio
 import re
 from itertools import cycle
 
 from fediplug.cli import options
 import fediplug.keyring as keyring
-from fediplug.queue import Queue
 from fediplug.buttplugio import trigger_actuators
 
 Mastodon = mastodon.Mastodon
@@ -77,19 +73,6 @@ class StreamListener(mastodon.StreamListener):
                 for buttplug_instruction in buttplug_instructions:
                     click.echo(f'queueing instructions {buttplug_instruction}')
                     self.event_loop.run_until_complete(trigger_actuators(self.plug_client, buttplug_instruction))    
-
-'''
-            if options['debug']:
-                print(rf'instructions: {buttplug_instructions}')
-
-            for link in links:
-                try:
-                    click.echo(rf'==> Trying {link}')
-                    self.queue.add(link)
-                    return
-                except DownloadError:
-                    pass
-'''
 
 def register(instance):
     '''Register fediplug to a Mastodon server and save the client credentials.'''

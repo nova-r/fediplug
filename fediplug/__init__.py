@@ -1,3 +1,3 @@
-'''A Mastodon client that automatically plays your friends' music as they toot links to it.'''
+'''A Mastodon client that automatically vibrates your buttplug.io devices as people on your timeline toot instructions.'''
 
 from fediplug.cli import cli
