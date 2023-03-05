@@ -3,7 +3,6 @@
 import os
 path = os.path
 
-import appdirs
 import click
 from keyring import get_password, set_password
 
