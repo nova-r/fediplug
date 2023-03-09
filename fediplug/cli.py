@@ -1,6 +1,6 @@
 '''Entry point for command-line interface.'''
 
-options = {'debug': False}
+from typing import Dict, List, Tuple
 
 import os
 path = os.path
@@ -14,7 +14,9 @@ import fediplug.mastodon as mastodon
 import fediplug.keyring as keyring
 import fediplug.buttplugio as buttplugio
 
-def get_access_token(instance):
+options: Dict[str, bool] = {'debug': False}
+
+def get_access_token(instance: str) -> str:
     '''Ensure the user credential exists.'''
 
     keyring.migrate_access_token(instance)
@@ -25,7 +27,7 @@ def get_access_token(instance):
 
     return keyring.get_credential(instance, keyring.CREDENTIAL_ACCESS_TOKEN)
 
-def get_client_credentials(instance):
+def get_client_credentials(instance: str) -> Tuple[str, str]:
     '''Ensure the client credentials exist.'''
 
     keyring.migrate_client_credentials(instance)
@@ -42,21 +44,21 @@ def get_client_credentials(instance):
 
 @click.group()
 @click.option('-d', '--debug', is_flag=True, help='Print debug messages.')
-def cli(debug):
+def cli(debug: bool) -> None:
     '''A program to play music your friends post on Mastodon.'''
 
     options['debug'] = debug
 
 @cli.command()
 @click.argument('instance')
-def register(instance):
+def register(instance: str) -> None:
     '''Register fediplug on your Mastodon instance.'''
 
     mastodon.register(instance)
 
 @cli.command()
 @click.argument('instance')
-def login(instance):
+def login(instance: str) -> None:
     '''Log in to your Mastodon instance.'''
 
     client_id, client_secret = get_client_credentials(instance)
@@ -73,7 +75,7 @@ def login(instance):
 @cli.command()
 @click.argument('instance')
 @click.argument('users', nargs=-1)
-def stream(instance, users):
+def stream(instance: str, users: Tuple[str]):
     '''Control buttplug.io device from your timeline.'''
 
     event_loop = asyncio.get_event_loop()
