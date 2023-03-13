@@ -1,4 +1,4 @@
-'''Buttplug controller'''
+"""Buttplug controller"""
 
 import asyncio
 import logging
@@ -8,8 +8,11 @@ from buttplug import Client, WebsocketConnector, ProtocolSpec
 
 from fediplug.cli import options
 
-async def connect_plug_client():
-    '''create Client object and connect plug client to Intiface Central or similar'''
+from typing import Tuple
+
+
+async def connect_plug_client() -> Client:
+    """create Client object and connect plug client to Intiface Central or similar"""
     plug_client = Client("fediplug", ProtocolSpec.v3)
     connector = WebsocketConnector("ws://127.0.0.1:12345", logger=plug_client.logger)
 
@@ -18,25 +21,28 @@ async def connect_plug_client():
     except Exception as e:
         logging.error(f"Could not connect to server, exiting: {e}")
         return
-    print('plug client connected')
+    print("plug client connected")
     return plug_client
 
-async def scan_devices(plug_client):
+
+async def scan_devices(plug_client: Client) -> Client:
     # scan for devices for 5 seconds
     await plug_client.start_scanning()
     await asyncio.sleep(5)
     await plug_client.stop_scanning()
     plug_client.logger.info(f"Devices: {plug_client.devices}")
 
-       # If we have any device we can print the list of devices 
-       # and access it by its ID: ( this step is done is trigger_actuators() )
+    # If we have any device we can print the list of devices
+    # and access it by its ID: ( this step is done is trigger_actuators() )
     if len(plug_client.devices) != 0:
         print(plug_client.devices)
         print(len(plug_client.devices), "devices found")
     return plug_client
 
 
-async def trigger_actuators(plug_client, actuator_command):
+async def trigger_actuators(
+    plug_client: Client, actuator_command: Tuple[float, float]
+) -> None:
     MAX_DURATION = 60  # maximum duration in seconds
     MAX_POWER = 1  # has to be 0 <= n <= 1 or it will not work
     duration = clamp(actuator_command[0], 0, MAX_DURATION)
@@ -52,10 +58,12 @@ async def trigger_actuators(plug_client, actuator_command):
             await actuator.command(power)
             print("generic actuator")
         await asyncio.sleep(duration)
-        #stops all actuators
+        # stops all actuators
         for actuator in device.actuators:
             await actuator.command(0)
-'''
+
+
+"""
     # Some devices may have linear actuators which need a different command.
     # The first parameter is the time duration in ms and the second the
     # position for the linear axis (0.0-1.0).
@@ -69,15 +77,18 @@ async def trigger_actuators(plug_client, actuator_command):
     if len(device.rotatory_actuators) != 0:
         await device.rotatory_actuators[0].command(0.5, True)
         print("rotary actuator") 
-'''
+"""
 
-async def disconnect_plug_client(plug_client):
+
+async def disconnect_plug_client(plug_client: Client) -> None:
     # Disconnect the plug_client.
     await plug_client.disconnect()
 
-def clamp(n, smallest, largest):
-    '''returns the closest value to n still in range (clamp)'''
+
+def clamp(n: float, smallest: float, largest: float) -> float:
+    """returns the closest value to n still in range (clamp)"""
     return max(smallest, min(n, largest))
+
 
 # First things first. We set logging to the console and at INFO level.
 logging.basicConfig(stream=sys.stdout, level=logging.INFO)
