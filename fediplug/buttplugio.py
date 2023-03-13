@@ -11,7 +11,7 @@ from fediplug.cli import options
 from typing import Tuple
 
 
-async def connect_plug_client(websocket_url: str = "127.0.0.1:12345") -> Client:
+async def connect_plug_client(websocket_url: str) -> Client:
     """create Client object and connect plug client to Intiface Central or similar"""
     plug_client = Client("fediplug", ProtocolSpec.v3)
     connector = WebsocketConnector(f"ws://{websocket_url}", logger=plug_client.logger)

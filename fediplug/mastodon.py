@@ -31,11 +31,13 @@ class StreamListener(mastodon.StreamListener):
         instance: str,
         users: list[str],
         event_loop: object,
+        actuator_power: str,
     ) -> None:
         self.plug_client = plug_client
         self.instance = instance
         self.users = users
         self.event_loop = event_loop
+        self.actuator_power = actuator_power
         self.regular_expression = re.compile(r"((?:\b(?:\d+s)(?:\s|\b))+(?:\d+%)?)+")
         # extracts commands from captured toots for usage in buttplug.io actuator
         # if no power % is given, a default will be set later
@@ -79,7 +81,7 @@ class StreamListener(mastodon.StreamListener):
 
             """Here we extract the instructions for the butplug"""
             buttplug_instructions = extract_buttplug_instructions(
-                status, self.regular_expression
+                status, self.regular_expression, self.actuator_power
             )
             if buttplug_instructions:  # check if buttplug_instructions is not empty
                 for buttplug_instruction in buttplug_instructions:
@@ -127,13 +129,20 @@ def login(instance, client_id, client_secret, grant_code):
 
 
 def stream(
-    instance, users, client_id, client_secret, access_token, plug_client, event_loop
+    instance,
+    users,
+    client_id,
+    client_secret,
+    access_token,
+    plug_client,
+    event_loop,
+    actuator_power,
 ):
     """Stream statuses and add them to a queue."""
 
     client = build_client(instance, client_id, client_secret, access_token)
     users = [normalize_username(user, instance) for user in users]
-    listener = StreamListener(plug_client, instance, users, event_loop)
+    listener = StreamListener(plug_client, instance, users, event_loop, actuator_power)
 
     click.echo(f"==> Streaming from {instance}")
     client.stream_user(listener)
@@ -157,7 +166,7 @@ def normalize_username(user, instance):
         return user
 
 
-def extract_buttplug_instructions(status, regular_expression):
+def extract_buttplug_instructions(status, regular_expression, actuator_power):
     """Extract buttplug instruction informations from a toot."""
     toot = lh.fromstring(status["content"])
     toot = clean_html(toot)
@@ -170,7 +179,7 @@ def extract_buttplug_instructions(status, regular_expression):
         commands = instruction.strip().split(" ")
         print(commands)
         if commands[-1][-1] != "%":
-            commands.append("100%")
+            commands.append(actuator_power)
         commands = [int(command[:-1]) for command in commands]
         power = commands.pop() / 100  # convert power from % to range 0..1
         commands = list(zip(commands, cycle([power])))
