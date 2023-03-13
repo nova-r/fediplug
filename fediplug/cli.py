@@ -54,7 +54,7 @@ def get_client_credentials(instance: str) -> Tuple[str, str]:
     )
 
 
-@click.group()
+@click.group(context_settings=dict(help_option_names=["-h", "--help"]))
 @click.option("-d", "--debug", is_flag=True, help="Print debug messages.")
 def cli(debug: bool) -> None:
     """A program to play music your friends post on Mastodon."""
