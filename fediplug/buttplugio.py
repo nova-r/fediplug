@@ -11,10 +11,10 @@ from fediplug.cli import options
 from typing import Tuple
 
 
-async def connect_plug_client() -> Client:
+async def connect_plug_client(websocket_url: str = "127.0.0.1:12345") -> Client:
     """create Client object and connect plug client to Intiface Central or similar"""
     plug_client = Client("fediplug", ProtocolSpec.v3)
-    connector = WebsocketConnector("ws://127.0.0.1:12345", logger=plug_client.logger)
+    connector = WebsocketConnector(f"ws://{websocket_url}", logger=plug_client.logger)
 
     try:
         await plug_client.connect(connector)

@@ -88,13 +88,16 @@ def login(instance: str) -> None:
 
 
 @cli.command()
+@click.option("-w", "--websocket", help="Pass an alternative websocket.")
 @click.argument("instance")
 @click.argument("users", nargs=-1)
-def stream(instance: str, users: Tuple[str]):
+def stream(instance: str, users: Tuple[str], websocket: str):
     """Control buttplug.io device from your timeline."""
 
     event_loop = asyncio.get_event_loop()
-    plug_client = event_loop.run_until_complete(buttplugio.connect_plug_client())
+    plug_client = event_loop.run_until_complete(
+        buttplugio.connect_plug_client(websocket)
+    )
     plug_client = event_loop.run_until_complete(buttplugio.scan_devices(plug_client))
 
     client_id, client_secret = get_client_credentials(instance)
