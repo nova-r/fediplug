@@ -88,10 +88,23 @@ def login(instance: str) -> None:
 
 
 @cli.command()
-@click.option("-w", "--websocket", help="Pass an alternative websocket.")
+@click.option(
+    "-p",
+    "--actuator_power",
+    help="sets the default actuator power, if no value is given.",
+    default="100%",
+    metavar=r"0%-100%",
+)
+@click.option(
+    "-w",
+    "--websocket",
+    help="Pass an alternative websocket.",
+    default="127.0.0.1:12345",
+    metavar="ip:port",
+)
 @click.argument("instance")
 @click.argument("users", nargs=-1)
-def stream(instance: str, users: Tuple[str], websocket: str):
+def stream(instance: str, users: Tuple[str], actuator_power: str, websocket: str):
     """Control buttplug.io device from your timeline."""
 
     event_loop = asyncio.get_event_loop()
@@ -104,5 +117,12 @@ def stream(instance: str, users: Tuple[str], websocket: str):
     access_token = get_access_token(instance)
 
     mastodon.stream(
-        instance, users, client_id, client_secret, access_token, plug_client, event_loop
+        instance,
+        users,
+        client_id,
+        client_secret,
+        access_token,
+        plug_client,
+        event_loop,
+        actuator_power,
     )
